@@ -15,12 +15,17 @@ jobs:
 
       - name: Build Docker Image
         run: docker build -t chat-git-image:latest .
-        # 构建Docker镜像，替换your-namespace和your-image-name为实际值
+        # 构建Docker镜像
 
       - name: Login to Docker Hub
         run: |
             echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
           # 使用GitHub Secrets中的Docker Hub用户名和密码登录到Docker Hub
+          
+
+      - name: Tag image
+        run: docker tag chat-git-image:latest 3011549907/chat-git-image:latest
+
 
 
       - name: Push Docker Image to Docker Hub
