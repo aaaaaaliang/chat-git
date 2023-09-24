@@ -1,68 +1,24 @@
-name: Chat Image
+name: chat-git
+#当提交代码触发
+on: [push]
 
-on:
-  push: # 当代码 push 到主分支(main)时触发工作流程
-    branches: ["main"]
-    paths-ignore: # 忽略一些不必要的文件
-      - ".gitignore"
-      - "README.md"
-      - ".idea/**"
-  pull_request:
-    branches: ["main"]
-
+#当主分支下的src改变的时候才会触发
+#on:
+#  push:
+#    branches:
+#    - master
+#    paths:
+#    - src/*
+#还有计时功能，根据业务需求使用
 jobs:
-  build:
-    runs-on: ubuntu-latest # 使用最新版本的 Ubuntu 操作系统
+  job1: #也可以用默认的的job
+    runs on: ubuntu-latest #这个是运行的时候依赖的系统，必须选择一个，且是github提供的系统
+    steps:             #在什么样的系统下运行什么样的指令
+#    - run: git clone   #拷贝代码下来，比较复杂，因为还有cd 之类的  可以用github默认提供的
+#一个 -  代表一个数组
+    - users: actions/checkout@v1    #github已经下载下来的流程
+#    - users: actions/setup-node@v1  #设置环境，这里设置的是node的环境
+#    - run: echo hello
 
-    steps:
-      - uses: actions/checkout@v3 # 检出代码仓库
-      - uses: docker/login-action@v1 # 登录到 Docker 镜像仓库
-        with:
-          registry: ghcr.io # 镜像源
-          username: ${{ github.actor }} # 使用当前 GitHub 用户名
-          password: ${{ secrets.HUB_GITHUB_TOKEN }} # 使用 GitHub Token 进行认证
-
-      - uses: actions/setup-node@v2 # 设置 Node.js 环境
-        with:
-          node-version: "16.14"
-
-      - uses: actions/cache@v2 # 使用缓存以加快构建速度
-        id: cache
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: pnpm install # 安装依赖
-        run: npm install -g pnpm --registry https://registry.npm.taobao.org
-
-      - name: Install
-        if: steps.cache.outputs.cache-hit != 'true' # 如果缓存未命中，重新安装依赖
-        run: npm config set registry https://registry.npm.taobao.org && pnpm i
-
-      - name: Build # 构建项目
-        run: npm run build
-
-      - name: Show Dir
-        run: ls
-
-      - name: Build the Docker image # 构建 Docker 镜像并发布到 GitHub Container Registry
-        run:
-          | # 使用 Dockerfile 构建镜像并发布到 GitHub Container Registry
-          docker build . --file Dockerfile --tag ghcr.io/3011549907/chat-image:v10
-          docker push ghcr.io/3011549907/chat-image:v10
-
-      - name: 更新服务器 # 使用 SSH 连接到服务器，拉取最新镜像并重新启动容器
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SERVER_HOST }} # 服务器ip地址
-          username: ${{ secrets.SERVER_USER }} # 服务器用户名称
-          password: ${{ secrets.SERVER_PWD }} # 服务器密码
-          port: ${{ secrets.SERVER_PORT }} # 服务器端口，默认22
-          script: |
-            docker stop chat-image
-            docker rm chat-image
-            docker login -u ${{ github.actor }} -p ${{ secrets.HUB_GITHUB_TOKEN }} https://ghcr.io
-            docker pull ghcr.io/3011549907/chat-image:v10
-            docker run -dp 8080:8080  --restart=always --name chat-image ghcr.io/3011549907/chat-image:v10
+  job2:
+    need: job1  #只有在job1执行完以后才能执行
