@@ -1,24 +1,38 @@
-name: chat-git
-#当提交代码触发
-on: [push]
+name: Build and Push Docker Image to Alibaba Cloud Container Registry
 
-#当主分支下的src改变的时候才会触发
-#on:
-#  push:
-#    branches:
-#    - master
-#    paths:
-#    - src/*
-#还有计时功能，根据业务需求使用
+on:
+  push:
+    branches:
+      - main  # 触发条件：只在main分支推送时触发
+
 jobs:
-  job1: #也可以用默认的的job
-    runs on: ubuntu-latest #这个是运行的时候依赖的系统，必须选择一个，且是github提供的系统
-    steps:             #在什么样的系统下运行什么样的指令
-#    - run: git clone   #拷贝代码下来，比较复杂，因为还有cd 之类的  可以用github默认提供的
-#一个 -  代表一个数组
-    - users: actions/checkout@v1    #github已经下载下来的流程
-#    - users: actions/setup-node@v1  #设置环境，这里设置的是node的环境
-#    - run: echo hello
+  build-and-push:
+    runs-on: ubuntu-latest  # 运行环境
 
-  job2:
-    need: job1  #只有在job1执行完以后才能执行
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2  # 下载代码
+
+      - name: Build Docker Image
+        run: docker build -t chat-git-image:latest .
+        # 构建Docker镜像，替换your-namespace和your-image-name为实际值
+
+      - name: Login to Docker Hub
+        run: |
+            echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          # 使用GitHub Secrets中的Docker Hub用户名和密码登录到Docker Hub
+
+
+      - name: Push Docker Image to Docker Hub
+        run: docker push 3011549907/chat-git-image:latest
+
+      # 登录到阿里云容器镜像仓库，下载镜像并运行容器
+      - name: Login Alibaba
+        run: |
+          echo ${{ secrets.ACR_PASSWORD }} | docker login --username ${{ secrets.ACR_USERNAME }} registry.cn-hangzhou.aliyuncs.com --password-stdin
+
+      - name: Pull Image
+        run: docker pull 3011549907/chat-git-image:latest
+
+      - name: Run Image
+        run:  docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always -it --name chat-container 3011549907/chat-git-image:latest
