@@ -32,12 +32,15 @@ jobs:
         run: docker push 3011549907/chat-git-image:latest
        # 上传到docker hub上的镜像
 
+      - name: Create SSH Directory
+        run: mkdir -p ~/.ssh
+
       - name: Install SSH Key
         run: |
-            echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
-        # 使用 GitHub Secrets 中的 SSH_PRIVATE_KEY，将私钥写入 ~/.ssh/id_rsa 文件
-
+          echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+        # 使用 GitHub Secrets 中的 SERVER_SSH_KEY，将私钥写入 ~/.ssh/id_rsa 文件
 
       - name: SSH into Alibaba Cloud ECS
         run: |
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@8.130.91.230
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@8.130.91.230
+
