@@ -33,7 +33,7 @@ jobs:
        # 上传到docker hub上的镜像
 
       - name: Setup SSH Key
-        uses: webfactory/ssh-agent@v0.5
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
