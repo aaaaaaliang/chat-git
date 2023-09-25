@@ -48,8 +48,4 @@ jobs:
             docker stop chat-container 2>/dev/null
             docker rm chat-container 2>/dev/null
             
-            docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always --name chat-container ***/chat-git-image:latest
-          #            docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always -it --name chat-container 3011549907/chat-git-image:latest
-
-          # 在此处添加你想要在服务器上执行的命令
-          # 例如：cd /path/to/your/app && git pull
+            docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always --name chat-container 3011549907/chat-git-image:latest
