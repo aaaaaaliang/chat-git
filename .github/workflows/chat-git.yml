@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2  # 下载代码
+        uses: actions/checkout@v4.0.0  # 下载代码
 
       - name: Build Docker Image
         run: docker build -t chat-git-image:latest .
@@ -45,9 +45,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             docker pull 3011549907/chat-git-image:latest
-            docker stop chat-container || true
-            docker rm chat-container || true
-          
+            docker stop chat-container 2>/dev/null
+            docker rm chat-container 2>/dev/null
+  
+  
             docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always -it --name chat-container 3011549907/chat-git-image:latest
 
           # 在此处添加你想要在服务器上执行的命令
