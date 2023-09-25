@@ -32,15 +32,23 @@ jobs:
         run: docker push 3011549907/chat-git-image:latest
        # 上传到docker hub上的镜像
 
-      - name: Create SSH Directory
-        run: mkdir -p ~/.ssh
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.5
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-      - name: Install SSH Key
-        run: |
-          echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
-        # 使用 GitHub Secrets 中的 SERVER_SSH_KEY，将私钥写入 ~/.ssh/id_rsa 文件
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull 3011549907/chat-git-image:latest
+            docker stop chat-container || true
+            docker rm chat-container || true
+          
+            docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always -it --name chat-container 3011549907/chat-git-image:latest
 
-      - name: SSH into Alibaba Cloud ECS
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@8.130.91.230
-
+          # 在此处添加你想要在服务器上执行的命令
+          # 例如：cd /path/to/your/app && git pull
