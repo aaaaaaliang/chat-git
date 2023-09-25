@@ -20,24 +20,24 @@ jobs:
       - name: Login to Docker Hub
         run: |
             echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          # 使用GitHub Secrets中的Docker Hub用户名和密码登录到Docker Hub
+        # 使用GitHub Secrets中的Docker Hub用户名和密码登录到Docker Hub
           
 
       - name: Tag image
         run: docker tag chat-git-image:latest 3011549907/chat-git-image:latest
-
+       # 给镜像打上标签
 
 
       - name: Push Docker Image to Docker Hub
         run: docker push 3011549907/chat-git-image:latest
+       # 上传到docker hub上的镜像
 
-      # 登录到阿里云容器镜像仓库，下载镜像并运行容器
-      - name: Login Alibaba
+      - name: Install SSH Key
         run: |
-          echo ${{ secrets.ACR_PASSWORD }} | docker login --username ${{ secrets.ACR_USERNAME }} registry.cn-hangzhou.aliyuncs.com --password-stdin
+            echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+        # 使用 GitHub Secrets 中的 SSH_PRIVATE_KEY，将私钥写入 ~/.ssh/id_rsa 文件
 
-      - name: Pull Image
-        run: docker pull 3011549907/chat-git-image:latest
 
-      - name: Run Image
-        run:  docker run -e HOST_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1) -p 8080:8080 --restart=always -it --name chat-container 3011549907/chat-git-image:latest
+      - name: SSH into Alibaba Cloud ECS
+        run: |
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@8.130.91.230
